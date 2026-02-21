@@ -6,15 +6,15 @@ this suite provides a modular, production-ready fullscreen VHS post-processing s
 
 - The effect(s) simulates authentic analog video artifacts, including lens distortion, chromatic aberration, tracking instability, scanlines, grain, and signal corruption.
 
-*The shader is injected using the current RenderGraph API rather than legacy rendering methods, ensuring forward compatibility with Unity’s evolving rendering systems
-*The system is designed with a clean separation between shader logic, editor tooling, and render pipeline injection, ensuring portability, extensibility, and compatibility with modern URP RenderGraph architecture
+The shader is injected using the current RenderGraph API rather than legacy rendering methods, ensuring forward compatibility with Unity’s evolving rendering systems
+- The system is designed with a clean separation between shader logic, editor tooling, and render pipeline injection, ensuring portability, extensibility, and compatibility with modern URP RenderGraph architecture
 
-*Injects shader into the URP render pipeline
-*Executes as a fullscreen post-processing pass
-*Uses modern URP RenderGraph API
-*Non-intrusive to existing rendering pipeline
+- Injects shader into the URP render pipeline
+- Executes as a fullscreen post-processing pass
+- Uses modern URP RenderGraph API
+- Non-intrusive to existing rendering pipeline
 
 Key Technical Pillars:
-*Modern Injection:       Uses ScriptableRendererFeature with RenderGraph for memory-efficient post-processing.
-*High-Performance HLSL:  Single-pass shader logic minimizing draw calls.
-*Modular Architecture:   Detection logic is decoupled from game objects, allowing for "any-body" vision sensing.
+- Modern Injection:       Uses ScriptableRendererFeature with RenderGraph for memory-efficient post-processing.
+- High-Performance HLSL:  Single-pass shader logic minimizing draw calls.
+- Modular Architecture:   Detection logic is decoupled from game objects, allowing for "any-body" vision sensing.
