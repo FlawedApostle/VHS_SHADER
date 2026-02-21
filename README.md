@@ -17,4 +17,4 @@ The shader is injected using the current RenderGraph API rather than legacy rend
 Key Technical Pillars:
 - Modern Injection:       Uses ScriptableRendererFeature with RenderGraph for memory-efficient post-processing.
 - High-Performance HLSL:  Single-pass shader logic minimizing draw calls.
-- Modular Architecture:   Detection logic is decoupled from game objects, allowing for "any-body" vision sensing.
+- Modular Architecture:   Detection logic is decoupled from game objects.
