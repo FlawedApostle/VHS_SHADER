@@ -10,7 +10,7 @@ The shader is injected using the current RenderGraph API rather than legacy rend
 - The system is designed with a clean separation between shader logic, editor tooling, and render pipeline injection, ensuring portability, extensibility, and compatibility with modern URP RenderGraph architecture
 
 - Injects shader into the URP render pipeline
-- Executes as a fullscreen post-processing pass
+- Executes as a fullscreen post-processing pass [Rendering Feature - URP]
 - Uses modern URP RenderGraph API
 - Non-intrusive to existing rendering pipeline
 
