@@ -83,7 +83,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AbbIntensity: 0.025
+    - _AbbIntensity: 0.016
     - _AddPrecomputedVelocity: 0
     - _AlphaClip: 0
     - _AlphaToMask: 0
@@ -131,8 +131,8 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _GrainIntensity: 0.0285
-    - _JitterAmount: 0.00128
+    - _GrainIntensity: 0.0222
+    - _JitterAmount: 0.00185
     - _JitterSpeed: 136.2
     - _LineDensity: 216
     - _LineRotate: 1.89
@@ -180,7 +180,7 @@ Material:
     - _UseWarp: 0
     - _VerticalJumpStrength: 0.003
     - _VignetteSize: 2.08
-    - _VignetteStrength: 1.28
+    - _VignetteStrength: 0.21
     - _WarpSpeed: 0
     - _WarpStrength: 0.0086
     - _WaveIntensity: 0.61

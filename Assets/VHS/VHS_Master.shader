@@ -1,5 +1,5 @@
 // ================================================================================
-// COPYRIGHT (C) 2026 []. ALL RIGHTS RESERVED.
+// COPYRIGHT (C) 2026 [Samuel Fearnley]. ALL RIGHTS RESERVED.
 // This shader is provided for use in projects but may not be resold or 
 // redistributed as source code without express permission.
 // ================================================================================
@@ -16,8 +16,8 @@
 // [NOTE: 16 BIT ARCHITECTURE:  NEED TO FIX:    IM AWARE CBUFFER IS NOT IDEAL, IT IS PARTIALLY IMPLEMENTED. THE INJECTOR NEEDS TO ACCOMODATE - PENDING COMMANDS
 // =========================================END OF NOTES============================
 
-// Shader "Hidden/VHS_Final_Master"
-Shader "VHS_Effects/VHS_Final_Master" // CHANGED FROM HIDDEN
+
+Shader "VHS_Effects/VHS_Final_Master"
 {
     Properties
     {
@@ -146,14 +146,15 @@ Shader "VHS_Effects/VHS_Final_Master" // CHANGED FROM HIDDEN
             #pragma shader_feature_local _USE_VIGNETTE
 
             // 16 byte Architecture
+            // GPU BUFFER
+            CBUFFER_START(UnityPerMaterial)         // START OF CBUFFER     -- inside are the most used - i know it is not ideal
+
              float4
              _GlitchRGB,
              _BurstColor,
              _ColorGrainRGB;                         // END OF FLOAT4  
 
 
-            // GPU BUFFER
-            CBUFFER_START(UnityPerMaterial)         // START OF CBUFFER     -- inside are the most used - i know it is not ideal
             // float4 _LensSettings;
             
             float 
@@ -177,7 +178,6 @@ Shader "VHS_Effects/VHS_Final_Master" // CHANGED FROM HIDDEN
             _VignetteStrength,
             _VignetteSize;                          // END OF FLOAT
             
-            CBUFFER_END                             // END OF CBUFFER
             
 
             float
@@ -206,6 +206,7 @@ Shader "VHS_Effects/VHS_Final_Master" // CHANGED FROM HIDDEN
             _JitterSpeed,
             _JitterAmount;                          // END OF FLOAT
 
+            CBUFFER_END                             // END OF CBUFFER
                                                  
 
             float Noise(float2 uv) {
@@ -419,5 +420,6 @@ Shader "VHS_Effects/VHS_Final_Master" // CHANGED FROM HIDDEN
             ENDHLSL
         }
     }
-    CustomEditor "VHSInspector"
+
+    CustomEditor "FringeLogic.VHS.VHSInspector"             /// Remember to change - ensure namespace are the same
 }
