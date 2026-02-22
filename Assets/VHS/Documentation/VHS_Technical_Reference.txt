@@ -1,5 +1,15 @@
+// ================================================================================
+// COPYRIGHT (C) 2026 [Samuel Fearnley]. ALL RIGHTS RESERVED.
+// This shader is provided for use in projects but may not be resold or 
+// redistributed as source code without express permission.
+// ================================================================================
+// "RenderPipeline" = "UniversalPipeline": 
+// This is a "lock and key" tag. It tells Unity, "Only run this shader if the project is using URP." 
+// If you tried to use this in the old Built-in pipeline, it WONT'T run.
+// ================================================================================
+
 ================================================================================
-VHS MASTER SHADER: THE CODE BIBLE (REVISED 2026-02-18)
+VHS MASTER SHADER: THE CODE BIBLE (REVISED)
 ================================================================================
 
 [GLOBAL TIME & STABILIZATION]

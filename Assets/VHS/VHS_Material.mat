@@ -110,7 +110,7 @@ Material:
     - _Chunkiness: 700
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
-    - _ColorGrainIntensity: 0.01
+    - _ColorGrainIntensity: 0.027
     - _Cull: 2
     - _Cutoff: 0.5
     - _CutoutThreshold: 0.98
@@ -131,7 +131,7 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _GrainIntensity: 0.0222
+    - _GrainIntensity: 0.0798
     - _JitterAmount: 0.00185
     - _JitterSpeed: 136.2
     - _LineDensity: 216
