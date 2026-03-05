@@ -15,11 +15,12 @@ using UnityEditor;
 namespace FringeLogic.VHS
 {
 
+
     public class VHSInspector : ShaderGUI
     {
         bool showLens = true; bool showChroma = true; bool showGlitch = true;
         bool showConstant = true; bool showBleed = true; bool showGrain = true; bool showFuzzy = true; bool showJitter = true;
-        //bool showVignette = true;
+        bool showVignette = true; bool showBlur = true;
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
@@ -27,15 +28,24 @@ namespace FringeLogic.VHS
             DrawSection("1. Lens & Distortion", ref showLens, () =>
             {
                 materialEditor.ShaderProperty(FindProperty("_UseFisheye", properties), "Enable Lens FX");
-                materialEditor.ShaderProperty(FindProperty("_DistortionStrength", properties), "Lens Bulge");
-                materialEditor.ShaderProperty(FindProperty("_BlurStrength", properties), "Edge Blur Intensity");
+                materialEditor.ShaderProperty(FindProperty("_DistortionStrength", properties), "Distortion Strength");
                 materialEditor.ShaderProperty(FindProperty("_Zoom", properties), "Zoom");
-                materialEditor.ShaderProperty(FindProperty("_DistortionPower", properties), "Distortion Power");
+                materialEditor.ShaderProperty(FindProperty("_BulgeBias", properties), "Bulge Bias Strength");
+
                 // VIGNETTE
                 EditorGUILayout.Space();
                 materialEditor.ShaderProperty(FindProperty("_UseVignette", properties), "Enable Vignette");
                 materialEditor.ShaderProperty(FindProperty("_VignetteStrength", properties), "Edge Darkness");
                 materialEditor.ShaderProperty(FindProperty("_VignetteSize", properties), " Vignette Smoothness (Power)");
+            });
+
+            // 1.b BLUR
+            DrawSection("1b. Blur", ref showBlur, () =>
+            {
+                materialEditor.ShaderProperty(FindProperty("_UseBlur", properties), "Enable Blur");
+                materialEditor.ShaderProperty(FindProperty("_BlurStrength", properties), "Blur Strength");
+                materialEditor.ShaderProperty(FindProperty("_DSLRBlurStart", properties), "Blur Start");
+                materialEditor.ShaderProperty(FindProperty("_DSLRBlurPower", properties), "Blur Power");
             });
 
             // 2. CHROMATIC ABBERATION

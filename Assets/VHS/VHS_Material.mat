@@ -94,7 +94,8 @@ Material:
     - _BleedR: 0.701
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
-    - _BlurStrength: 1
+    - _BlurStrength: 5
+    - _BulgeBias: 0.5
     - _BumpScale: 1
     - _BurstBrightness: 0.06
     - _BurstColorIntensity: 1
@@ -114,11 +115,13 @@ Material:
     - _Cull: 2
     - _Cutoff: 0.5
     - _CutoutThreshold: 0.98
+    - _DSLRBlurPower: 2
+    - _DSLRBlurStart: 0.05
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _Distortion: -0.5
     - _DistortionPower: 2.6
-    - _DistortionStrength: 0.22
+    - _DistortionStrength: 0.5
     - _DstBlend: 0
     - _DstBlendAlpha: 0
     - _EnvironmentReflections: 1
@@ -160,6 +163,7 @@ Material:
     - _TrackingSpeed: 0.5
     - _UseBlackout: 0
     - _UseBleed: 0
+    - _UseBlur: 0
     - _UseBurstZone: 0
     - _UseChroma: 0
     - _UseChromaAbb: 0
@@ -190,7 +194,7 @@ Material:
     - _XOffsetStrength: 0.0867
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1
-    - _Zoom: 0.96
+    - _Zoom: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _BurstColor: {r: 1, g: 1.72, b: 3.87, a: 0}

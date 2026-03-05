@@ -1,5 +1,5 @@
-// ================================================================================
-// COPYRIGHT (C) 2026 [Samuel Fearnley]. ALL RIGHTS RESERVED.
+﻿// ================================================================================
+// COPYRIGHT (C) 2026 []. ALL RIGHTS RESERVED.
 // This shader is provided for use in projects but may not be resold or 
 // redistributed as source code without express permission.
 // ================================================================================
@@ -16,8 +16,8 @@
 // [NOTE: 16 BIT ARCHITECTURE:  NEED TO FIX:    IM AWARE CBUFFER IS NOT IDEAL, IT IS PARTIALLY IMPLEMENTED. THE INJECTOR NEEDS TO ACCOMODATE - PENDING COMMANDS
 // =========================================END OF NOTES============================
 
-
-Shader "VHS_Effects/VHS_Final_Master"
+// Shader "Hidden/VHS_Final_Master"
+Shader "VHS_Effects/VHS_Final_Master" // CHANGED FROM HIDDEN
 {
     Properties
     {
@@ -26,13 +26,20 @@ Shader "VHS_Effects/VHS_Final_Master"
         _CutoutThreshold("Blackout Chance", Range(0.9, 1.0)) = 0.98  
         _MainTex("Texture", 2D) = "white" {}
         // LENS - FISH EYE   
-        [Header(Lens Distortion and Edge Blur)]
+        [Header(Fish Eye Lens Distortion)]
         [Toggle(_USE_FISHEYE_ON)] _UseFisheye("Enable Lens FX", Float) = 1
-        _DistortionStrength("Lens Bulge", Float) = 0.5
-        _BlurStrength("Edge Blur Intensity", Range(0, 5)) = 1.0
+        _DistortionStrength("Distortion Strength", Float) = 0.5
         _Zoom("Zoom", Float) = 0.9
-        _DistortionPower("Lens Edge Sharpness", Range(1, 5)) = 2.0              // pow() formula
-        /// VIGNETTE BORDER
+        _BulgeBias("Bulge Strength", Float) = 0.9                               // exaggerated polynomial growth
+
+        // BLUR
+        [Header(Blur)]
+        [Toggle (_USE_BLUR_ON)] _UseBlur("Enable Blur", Float) = 1
+        _BlurStrength("Blur Strength - Edge", Float) = 1.0
+        _DSLRBlurStart("Blur Start Radius", Range(0,1)) = 0.6
+        _DSLRBlurPower("Blur Falloff Power", Range(0.1,5)) = 2.0
+        
+        /// VIGNETTE BORDER 
         [Header(Border Vignette)]
         [Toggle(_USE_VIGNETTE)] _UseVignette("Enable Vignette", Float) = 0
         _VignetteStrength("Edge Darkness", Range(0, 2)) = 1.0
@@ -128,6 +135,7 @@ Shader "VHS_Effects/VHS_Final_Master"
             #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
             #pragma shader_feature_local _USE_FISHEYE_ON
+            #pragma shader_feature_local _USE_BLUR_ON
             #pragma shader_feature_local _USE_CHROMA_ABB
             #pragma shader_feature_local _USE_GLITCH_ON
             #pragma shader_feature_local _USE_GLITCH_COLOR
@@ -148,13 +156,6 @@ Shader "VHS_Effects/VHS_Final_Master"
             // 16 byte Architecture
             // GPU BUFFER
             CBUFFER_START(UnityPerMaterial)         // START OF CBUFFER     -- inside are the most used - i know it is not ideal
-
-             float4
-             _GlitchRGB,
-             _BurstColor,
-             _ColorGrainRGB;                         // END OF FLOAT4  
-
-
             // float4 _LensSettings;
             
             float 
@@ -163,6 +164,7 @@ Shader "VHS_Effects/VHS_Final_Master"
             _DistortionPower, 
             _BlurStrength, 
             _Zoom,
+            _BulgeBias,
             // GLITCH
             _TrackingSpeed, 
             _TrackingAmount, 
@@ -178,7 +180,7 @@ Shader "VHS_Effects/VHS_Final_Master"
             _VignetteStrength,
             _VignetteSize;                          // END OF FLOAT
             
-            
+            CBUFFER_END                             // END OF CBUFFER
 
             float
             _AbbIntensity, 
@@ -203,11 +205,17 @@ Shader "VHS_Effects/VHS_Final_Master"
             _FlickerStrength, 
             _FlickerSpeed, 
             _VerticalJumpStrength, 
+            _projected_real,
+            _projected_fake,
+            _DSLRBlurStart,
+            _DSLRBlurPower,
             _JitterSpeed,
-            _JitterAmount;                          // END OF FLOAT
+            _JitterAmount;                       // END OF FLOAT
 
-            CBUFFER_END                             // END OF CBUFFER
-                                                 
+            float4 _GlitchRGB;
+            float4 _BurstColor;
+            float4 _ColorGrainRGB;
+
 
             float Noise(float2 uv) {
                 return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453);
@@ -233,19 +241,20 @@ Shader "VHS_Effects/VHS_Final_Master"
                 // STAGE 0: INITIAL SETUP
                 //--------------------------------------------------
                 
-                float2 uv = input.texcoord;
-
                 // Effects
+                float2 uv = input.texcoord;
                 float2 distortedUV = uv;
+                // float2 sphereUV = uv * 2.0 - 1.0;               // Fish Eye 
                 float t_stable = frac(_Time.y);
 
                 // -------> Distance Calculation (all features can use it, so it's outside the Fisheye block)
                 float2 centeredUV = uv - 0.5;
                 float dist = dot(centeredUV, centeredUV);
+                float distForBlur = length(distortedUV - 0.5);
 
-                half4 color = 0;            // -- BLUR
-                float3 glitchAddColor = 0;  // GLITCH
 
+                half4 color = 0;                                 // BLUR
+                float3 glitchAddColor = 0;                       // GLITCH
 
                 //--------------------------------------------------
                 // STAGE 1: FRAME EVENTS
@@ -261,24 +270,43 @@ Shader "VHS_Effects/VHS_Final_Master"
                 // These modify WHERE we sample from
                 //--------------------------------------------------
 
-                 // FISHEYE
+                 // FISHEYE - NOTE NOT USING THE GLOBALS, RATHER ITS CREATED INSIDE THE SCOPE TO SEPERATE 'USAGE'
                 #ifdef _USE_FISHEYE_ON
-                //distortedUV = 0.5 + (centeredUV * _Zoom) * (1.0 + _DistortionStrength * dist);
-                // Wrapping dist in pow() protects the center of the screen
-                distortedUV = 0.5 + (centeredUV * _Zoom) * (1.0 + _DistortionStrength * pow(dist, _DistortionPower));
+                float2 sphereUV = uv * 2.0 - 1.0;
+                // Apply zoom BEFORE projection
+                sphereUV *= _Zoom;
+                // Distance from center
+                float r = length(sphereUV);
+                float safeR = max(r, 0.0001);
+                // Angular mapping
+                float theta = r * _DistortionStrength;
+                // Hybrid projection
+                float projected_real = sin(theta);
+                float projected_fake = theta * (1.0 + theta * theta);
+                float projected = lerp(projected_real, projected_fake, _BulgeBias);
+
+                // Normalize direction
+                sphereUV = sphereUV * (projected / safeR);
+
+                // Back to 0–1 UV
+                distortedUV = sphereUV * 0.5 + 0.5;
+
                 #endif
+
 
                 // VERTICAL TAPE JUMP
                 #ifdef _USE_VERTICAL_JUMP
                 float jump = step(0.95, Noise(float2(t_stable * 0.5, 0))) * _VerticalJumpStrength;
                 distortedUV.y += jump;
                 #endif
+
                 // GLITCH - (LOOPING BANDS)
                 #ifdef _USE_GLITCH_ON
                 float wave = (distortedUV.y * _TrackingAmount) - (_Time.y * _TrackingSpeed);
                 float trackingBar = sin(wave * _TrackingSpacing);
                 trackingBar = smoothstep(0.9, 1.0, trackingBar);
                 distortedUV.x += trackingBar * 0.03 * Noise(float2(t_stable, distortedUV.y));           // DSITORTED uv
+                
                 // GLITCH - COLOR
                 #ifdef _USE_GLITCH_COLOR                                                                
                 float pNoise = Noise(distortedUV + t_stable);
@@ -293,6 +321,15 @@ Shader "VHS_Effects/VHS_Final_Master"
                 distortedUV.y += (Noise(float2(0, jitterTime)) - 0.5) * _JitterAmount;
                 #endif
 
+
+                // -------------------------------------------------
+                // UNIFIED LENS RADIAL DOMAIN (POST PROJECTION)
+                // -------------------------------------------------
+                float2 lensCentered = distortedUV - 0.5;
+                float lensRadius = length(lensCentered);          // 0 at center
+                float lensRadiusSq = dot(lensCentered, lensCentered);
+                float lensEdge = saturate(lensRadius * 2.0);     // normalized ~0 center → 1 edge
+
                 //--------------------------------------------------
                 // STAGE 3: CHANNEL UV CALCULATION
                 // These define RGB separation BEFORE sampling
@@ -305,13 +342,15 @@ Shader "VHS_Effects/VHS_Final_Master"
                 // CHROMATIC ABBERATION - FLARE
                 #ifdef _USE_CHROMA_ABB
                 // We calculate the flare ONLY if the toggle is on
-                flareFactor = _AbbIntensity * pow(dist, _FlarePower);
+                flareFactor = _AbbIntensity * pow(lensEdge, _FlarePower);       // distForBlur
                 #endif
+                
                 // Apply the Flare (or 0) to the Red and Blue channels
                 float2 r_uv = 0.5 + flareUV * (1.0 + flareFactor);
                 float2 g_uv = distortedUV;
                 float2 b_uv = 0.5 + flareUV * (1.0 - flareFactor);
-                // CHROMATIC ABBERATION - THE CONSTANT SHIFT (The Add-on Toggle)
+                
+                // CHROMATIC ABBERATION - THE CONSTANT SHIFT (The Add-on Toggle) 
                 #ifdef _USE_CHROMA
                 r_uv.x += _R_Offset;
                 g_uv.x += _G_Offset;
@@ -320,29 +359,57 @@ Shader "VHS_Effects/VHS_Final_Master"
                 
                 //--------------------------------------------------
                 // STAGE 4: IMAGE SAMPLING
-                // This actually creates the image
                 //--------------------------------------------------
-                
+
                 //  BLUR - SAMPLE 
-                #ifdef _USE_FISHEYE_ON
-                float distForBlur = length(uv - 0.5);
-                float blur = distForBlur * _BlurStrength * 0.005;
-                float2 offsets[4] = { float2(blur, blur), float2(-blur, blur), float2(blur, -blur), float2(-blur, -blur) };
-                for(int i = 0; i < 4; i++) {
-                    color.r += SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, r_uv + offsets[i]).r;
-                    color.g += SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, g_uv + offsets[i]).g;
-                    color.b += SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, b_uv + offsets[i]).b;
+                #ifdef _USE_BLUR_ON
+                
+                // 1. Create the DSLR Radial Mask
+                float blurFalloff = smoothstep(_DSLRBlurStart, 1.0, lensEdge); 
+                
+                // 2. Apply the power curve to dictate how sharp the transition is
+                float blurMask = pow(blurFalloff, _DSLRBlurPower);
+                
+                // 3. Multiply by overall strength and a small constant to keep it sane
+                float blur = blurMask * _BlurStrength * 0.005;
+                
+                float3 accum = 0;
+
+                // Center sample
+                accum.r += SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, r_uv).r;
+                accum.g += SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, g_uv).g;
+                accum.b += SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, b_uv).b;
+
+                // Cross blur samples
+                float2 offsets[4] = {
+                    float2( blur, 0),
+                    float2(-blur, 0),
+                    float2(0,  blur),
+                    float2(0, -blur)
+                };
+
+                for(int i = 0; i < 4; i++)
+                {
+                    accum.r += SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, r_uv + offsets[i]).r;
+                    accum.g += SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, g_uv + offsets[i]).g;
+                    accum.b += SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, b_uv + offsets[i]).b;
                 }
-                color /= 4.0;
+
+                color = float4(accum / 5.0, 1.0);
+
                 #else
                 color.r = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, r_uv).r;
                 color.g = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, g_uv).g;
                 color.b = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, b_uv).b;
-                #endif
-                
-                color.rgb += glitchAddColor;
                 color.a = 1.0;
+                #endif
 
+                // NOTE: Apply the glitch add color calculated earlier!
+                color.rgb += glitchAddColor;
+
+
+               
+                    
                 //--------------------------------------------------
                 // STAGE 5: POST COLOR EFFECTS
                 // These modify the sampled image
@@ -420,6 +487,50 @@ Shader "VHS_Effects/VHS_Final_Master"
             ENDHLSL
         }
     }
-
-    CustomEditor "FringeLogic.VHS.VHSInspector"             /// Remember to change - ensure namespace are the same
+    
+    CustomEditor "VHSInspector"
 }
+
+
+
+
+//// OLD CODE MOVING SOON
+
+                
+                // #ifdef _USE_FISHEYE_ON // - FIRST TEST
+                // float distForBlur = length(uv - 0.5);
+                // float blur = distForBlur * _BlurStrength * 0.005;
+                // float2 offsets[4] = { float2(blur, blur), float2(-blur, blur), float2(blur, -blur), float2(-blur, -blur) };
+                // for(int i = 0; i < 4; i++) {
+                //     color.r += SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, r_uv + offsets[i]).r;
+                //     color.g += SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, g_uv + offsets[i]).g;
+                //     color.b += SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, b_uv + offsets[i]).b;
+                // }
+                // color /= 4.0;
+                // #else
+                // color.r = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, r_uv).r;
+                // color.g = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, g_uv).g;
+                // color.b = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, b_uv).b;
+
+                // color.rgb += glitchAddColor;
+                // color.a = 1.0;
+
+                // float distForBlur = length(uv - 0.5);
+                // #endif
+
+
+                
+
+                // //distortedUV = 0.5 + (centeredUV * _Zoom) * (1.0 + _DistortionStrength * dist);
+                // Wrapping dist in pow() protects the center of the screen
+                // distortedUV = 0.5 + (centeredUV * _Zoom) * (1.0 + _DistortionStrength * pow(dist, _DistortionPower));
+
+
+                                // FALLBACK (only if no fisheye active)
+                // if (!blurred)
+                // {
+                //     // Perfectly sharp sampling when FishEye is toggled OFF
+                //     color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, distortedUV);
+                // }
+
+////// OLD CODE MOVING SOON - END
