@@ -11,7 +11,16 @@ Material:
   m_Shader: {fileID: 4800000, guid: d5e59729fb5501e4781d68ba87108544, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _USE_BLEED
+  - _USE_BLUR_ON
+  - _USE_BURST_SCROLL
+  - _USE_CHROMA_ABB
+  - _USE_FISHEYE_ON
+  - _USE_GLITCH_COLOR
+  - _USE_GLITCH_ON
+  - _USE_LINES_ON
+  - _USE_RGB_BURST
   m_InvalidKeywords:
   - _USE_FISHEYE
   m_LightmapFlags: 4
@@ -83,7 +92,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AbbIntensity: 0.016
+    - _AbbIntensity: 0.05
     - _AddPrecomputedVelocity: 0
     - _AlphaClip: 0
     - _AlphaToMask: 0
@@ -97,21 +106,21 @@ Material:
     - _BlurStrength: 5
     - _BulgeBias: 0.5
     - _BumpScale: 1
-    - _BurstBrightness: 0.06
+    - _BurstBrightness: 0.25
     - _BurstColorIntensity: 1
     - _BurstFlickerSpeed: 10.4
     - _BurstHorizontal: 0
-    - _BurstInterval: 0.225
+    - _BurstInterval: 0
     - _BurstOpacity: 0
     - _BurstPos: 0.042
-    - _BurstScroll: 0
-    - _BurstSize: 0.014
+    - _BurstScroll: 1
+    - _BurstSize: 1
     - _BurstWidth: 0.044
     - _ChromaAmount: 0.0073
     - _Chunkiness: 700
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
-    - _ColorGrainIntensity: 0.027
+    - _ColorGrainIntensity: 0.147
     - _Cull: 2
     - _Cutoff: 0.5
     - _CutoutThreshold: 0.98
@@ -126,22 +135,22 @@ Material:
     - _DstBlendAlpha: 0
     - _EnvironmentReflections: 1
     - _FlarePower: 1
-    - _FlickerSpeed: 10
-    - _FlickerStrength: 0.0262
+    - _FlickerSpeed: 2
+    - _FlickerStrength: 0.0137
     - _G_Offset: 0.005
     - _GlitchBurstIntensity: 0.141
     - _GlitchTimer: 1
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _GrainIntensity: 0.0798
-    - _JitterAmount: 0.00185
+    - _GrainIntensity: 0.1935
+    - _JitterAmount: 0.00742
     - _JitterSpeed: 136.2
-    - _LineDensity: 216
-    - _LineRotate: 1.89
-    - _LineSineWarp: 0.015
+    - _LineDensity: 2500
+    - _LineRotate: 5
+    - _LineSineWarp: 0.05
     - _LineSpeed: 15
-    - _LineStrength: 0.513
+    - _LineStrength: 0.094
     - _Metallic: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
@@ -155,27 +164,27 @@ Material:
     - _SrcBlendAlpha: 1
     - _StutterAmount: 0.0854
     - _Surface: 0
-    - _TrackingAmount: 1.89
+    - _TrackingAmount: 9.22
     - _TrackingHardness: 0.927
     - _TrackingJitter: 0.0249
-    - _TrackingSize: 20
-    - _TrackingSpacing: 1.66
-    - _TrackingSpeed: 0.5
+    - _TrackingSize: 0
+    - _TrackingSpacing: 7.94
+    - _TrackingSpeed: 0
     - _UseBlackout: 0
-    - _UseBleed: 0
-    - _UseBlur: 0
+    - _UseBleed: 1
+    - _UseBlur: 1
     - _UseBurstZone: 0
     - _UseChroma: 0
-    - _UseChromaAbb: 0
+    - _UseChromaAbb: 1
     - _UseColorGrain: 0
-    - _UseFisheye: 0
+    - _UseFisheye: 1
     - _UseFlicker: 0
-    - _UseGlitch: 0
-    - _UseGlitchColor: 0
+    - _UseGlitch: 1
+    - _UseGlitchColor: 1
     - _UseGrain: 0
     - _UseJitter: 0
-    - _UseLines: 0
-    - _UseRGBBurst: 0
+    - _UseLines: 1
+    - _UseRGBBurst: 1
     - _UseRGBGlitch: 0
     - _UseScanlines: 0
     - _UseTracking: 0
@@ -183,8 +192,8 @@ Material:
     - _UseVignette: 0
     - _UseWarp: 0
     - _VerticalJumpStrength: 0.003
-    - _VignetteSize: 2.08
-    - _VignetteStrength: 0.21
+    - _VignetteSize: 2
+    - _VignetteStrength: 0.5
     - _WarpSpeed: 0
     - _WarpStrength: 0.0086
     - _WaveIntensity: 0.61
@@ -201,7 +210,7 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _ColorGrainRGB: {r: 5, g: 5, b: 5, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _GlitchRGB: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    - _GlitchRGB: {r: 0.5, g: 0.25, b: 0.75, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
